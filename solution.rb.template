@@ -1,0 +1,26 @@
+require './utils'
+
+class Solution
+  def tests
+    assert true, true
+    :ok
+  end
+
+  def part_a
+    raise NotImplementedError
+  end
+
+  def part_b
+    raise NotImplementedError
+  end
+
+  private
+
+  def solve_a(input)
+    raise NotImplementedError
+  end
+
+  def solve_b(input)
+    raise NotImplementedError
+  end
+end

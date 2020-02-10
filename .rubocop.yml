@@ -1,0 +1,28 @@
+# For tests, having braces around the expected value helps
+# with clarity:
+#
+#   assert solve('question'), { a: [1, 2, 3] }
+#
+Style/BracesAroundHashParameters:
+  Enabled: false
+
+# Documentation on classes is great, if this were a realistic
+# production product.
+Style/Documentation:
+  Enabled: false
+
+# Frozen-by-default string literals are also great in production
+# products; but the magic comment detracts from solutions.
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+# While this metric can be useful for other methods, it will report
+# failures for our testing methods.
+Metrics/AbcSize:
+  Enabled: false
+
+# We want our test methods to be self-contained, so we can simply exclude
+# them from method length checks.
+Metrics/MethodLength:
+  ExcludedMethods:
+    - tests
