@@ -25,11 +25,9 @@ class Solution
   private
 
   def solve_a(input)
-    floor = 0
-    input.each_char do |c|
+    input.each_char.reduce(0) do |floor, c|
       floor += c == '(' ? 1 : -1
     end
-    floor
   end
 
   def solve_b(input)
