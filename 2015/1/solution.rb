@@ -11,6 +11,10 @@ class Solution
     assert solve_a('))('), -1
     assert solve_a(')))'), -3
     assert solve_a(')())())'), -3
+
+    assert solve_b(')'), 1
+    assert solve_b('()())'), 5
+    assert solve_b('(()))(('), 5
     :ok
   end
 
@@ -19,7 +23,7 @@ class Solution
   end
 
   def part_b
-    raise NotImplementedError
+    solve_b(File.read('input'))
   end
 
   private
@@ -31,6 +35,10 @@ class Solution
   end
 
   def solve_b(input)
-    raise NotImplementedError
+    floor = 0
+    input.each_char.with_index(1) do |c, pos|
+      floor += c == '(' ? 1 : -1
+      return pos if floor == -1
+    end
   end
 end
