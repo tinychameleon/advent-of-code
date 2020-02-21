@@ -13,28 +13,24 @@ class LightGrid
   end
 
   def turn_on(origin, bound)
-    for y in origin.y..bound.y
-      offset = @cols * y
-      for x in origin.x..bound.x
-        @grid[offset + x] = true
-      end
-    end
+    change_state(origin, bound) { true }
   end
 
   def turn_off(origin, bound)
-    for y in origin.y..bound.y
-      offset = @cols * y
-      for x in origin.x..bound.x
-        @grid[offset + x] = false
-      end
-    end
+    change_state(origin, bound) { false }
   end
 
   def toggle(origin, bound)
+    change_state(origin, bound) { |b| !b }
+  end
+
+  private
+
+  def change_state(origin, bound)
     for y in origin.y..bound.y
       offset = @cols * y
       for x in origin.x..bound.x
-        @grid[offset + x] = !@grid[offset + x]
+        @grid[offset + x] = yield @grid[offset + x]
       end
     end
   end
