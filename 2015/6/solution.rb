@@ -7,9 +7,38 @@ Point = Struct.new(:x, :y) do
 end
 
 class LightGrid
-  def initialize(rows: 1_000, cols: 1_000)
-    @grid = [false] * rows * cols
+  def initialize(val, rows: 1_000, cols: 1_000)
+    @grid = [val] * rows * cols
     @cols = cols
+  end
+
+  def turn_on(origin, bound)
+    raise NotImplementedError
+  end
+
+  def turn_off(origin, bound)
+    raise NotImplementedError
+  end
+
+  def toggle(origin, bound)
+    raise NotImplementedError
+  end
+
+  private
+
+  def change_state(origin, bound)
+    for y in origin.y..bound.y
+      offset = @cols * y
+      for x in origin.x..bound.x
+        @grid[offset + x] = yield @grid[offset + x]
+      end
+    end
+  end
+end
+
+class SwitchLightGrid < LightGrid
+  def initialize(rows: 1_000, cols: 1_000)
+    super(false, rows: rows, cols: cols)
   end
 
   def count
@@ -27,29 +56,18 @@ class LightGrid
   def toggle(origin, bound)
     change_state(origin, bound) { |b| !b }
   end
-
-  private
-
-  def change_state(origin, bound)
-    for y in origin.y..bound.y
-      offset = @cols * y
-      for x in origin.x..bound.x
-        @grid[offset + x] = yield @grid[offset + x]
-      end
-    end
-  end
 end
 
 class Solution
   def tests
-    test_lightgrid
+    test_switchlightgrid
     test_parse_line
     test_solve_a
     :ok
   end
 
   def part_a
-    solve_a(LightGrid.new, File.read('input'))
+    solve_a(SwitchLightGrid.new, File.read('input'))
   end
 
   def part_b
@@ -58,8 +76,8 @@ class Solution
 
   private
 
-  def test_lightgrid
-    g = LightGrid.new(rows: 2, cols: 2)
+  def test_switchlightgrid
+    g = SwitchLightGrid.new(rows: 2, cols: 2)
     #   0 1
     # 0 - -
     # 1 - -
@@ -97,7 +115,7 @@ class Solution
   end
 
   def test_solve_a
-    g = LightGrid.new(rows: 2, cols: 2)
+    g = SwitchLightGrid.new(rows: 2, cols: 2)
     input = <<~data
       turn on 0,0 through 0,1
       turn off 0,1 through 1,1
@@ -144,4 +162,3 @@ class Solution
     raise NotImplementedError
   end
 end
-
