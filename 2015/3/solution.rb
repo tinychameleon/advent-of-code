@@ -10,6 +10,14 @@ class Solution
     assert solve_a('>'), 2
     assert solve_a('^>v<'), 4
     assert solve_a('^v^v^v^v^v'), 2
+
+    assert duo_tracker('^v'), { 0 => Set[0, 1, -1] }
+    assert duo_tracker('^>v<'), { 0 => Set[0, 1], 1 => Set[0] }
+    assert duo_tracker('^v^v^v^v^v'), { 0 => Set[*(-5..5)] }
+
+    assert solve_b('^v'), 3
+    assert solve_b('^>v<'), 3
+    assert solve_b('^v^v^v^v^v'), 11
     :ok
   end
 
@@ -18,7 +26,7 @@ class Solution
   end
 
   def part_b
-    raise NotImplementedError
+    solve_b(File.read('input'))
   end
 
   private
@@ -53,11 +61,21 @@ class Solution
     houses
   end
 
+  def duo_tracker(directions)
+    houses = new_house_map
+    duo = [Point.new(0, 0), Point.new(0, 0)]
+    directions.each_char.zip(duo.cycle).each do |c, pos|
+      pos.add(DELTAS[c])
+      houses[pos.x].add(pos.y)
+    end
+    houses
+  end
+
   def solve_a(input)
     santa_tracker(input).values.map(&:count).sum
   end
 
   def solve_b(input)
-    raise NotImplementedError
+    duo_tracker(input).values.map(&:count).sum
   end
 end
