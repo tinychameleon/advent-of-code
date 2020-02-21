@@ -7,6 +7,12 @@ class Solution
     assert nice?('jchzalrnumimnmhp'), false
     assert nice?('haegwjzuvuyypxyu'), false
     assert nice?('dvszwmarrgswjxmb'), false
+
+    assert better_nice?('qjhvhtzxzqqjkmpb'), true
+    assert better_nice?('xxyxx'), true
+    assert better_nice?('aaaya'), false
+    assert better_nice?('uurcxstgmygtbstg'), false
+    assert better_nice?('ieodomkazucvgmuy'), false
     :ok
   end
 
@@ -15,7 +21,7 @@ class Solution
   end
 
   def part_b
-    raise NotImplementedError
+    solve_b(File.read('input'))
   end
 
   private
@@ -28,11 +34,18 @@ class Solution
     ].all?
   end
 
+  def better_nice?(word)
+    [
+      word.match?(/([a-z]{2}).*\1/),
+      word.match?(/([a-z])[a-z]\1/)
+    ].all?
+  end
+
   def solve_a(input)
     input.split.filter { |w| nice?(w) }.count
   end
 
   def solve_b(input)
-    raise NotImplementedError
+    input.split.filter { |w| better_nice?(w) }.count
   end
 end
