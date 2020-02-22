@@ -30,7 +30,7 @@ class Solution
 
   def solve_a(input)
     input.each_char.reduce(0) do |floor, c|
-      floor += c == '(' ? 1 : -1
+      floor + (c == '(' ? 1 : -1)
     end
   end
 

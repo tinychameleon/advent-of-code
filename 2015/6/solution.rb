@@ -18,24 +18,24 @@ class LightGrid
     @cols = cols
   end
 
-  def turn_on(origin, bound)
+  def turn_on(_origin, _bound)
     raise NotImplementedError
   end
 
-  def turn_off(origin, bound)
+  def turn_off(_origin, _bound)
     raise NotImplementedError
   end
 
-  def toggle(origin, bound)
+  def toggle(_origin, _bound)
     raise NotImplementedError
   end
 
   private
 
   def change_state(origin, bound)
-    for y in origin.y..bound.y
+    (origin.y..bound.y).each do |y|
       offset = @cols * y
-      for x in origin.x..bound.x
+      (origin.x..bound.x).each do |x|
         @grid[offset + x] = yield @grid[offset + x]
       end
     end
@@ -60,7 +60,7 @@ class SwitchLightGrid < LightGrid
   end
 
   def toggle(origin, bound)
-    change_state(origin, bound) { |b| !b }
+    change_state(origin, bound, &:!)
   end
 end
 
@@ -171,24 +171,20 @@ class Solution
     ]
   end
 
+  TEST_INPUT = <<~DATA.freeze
+    turn on 0,0 through 0,1
+    turn off 0,1 through 1,1
+    toggle 0,0 through 1,1
+  DATA
+
   def test_solve_a
     g = SwitchLightGrid.new(rows: 2, cols: 2)
-    input = <<~data
-      turn on 0,0 through 0,1
-      turn off 0,1 through 1,1
-      toggle 0,0 through 1,1
-    data
-    assert solve_a(g, input), 3
+    assert solve_a(g, TEST_INPUT), 3
   end
 
   def test_solve_b
     g = DimmableLightGrid.new(rows: 2, cols: 2)
-    input = <<~data
-      turn on 0,0 through 0,1
-      turn off 0,1 through 1,1
-      toggle 0,0 through 1,1
-    data
-    assert solve_b(g, input), 9
+    assert solve_b(g, TEST_INPUT), 9
   end
 
   MATCHERS = {
@@ -201,6 +197,7 @@ class Solution
     MATCHERS.each do |k, re|
       m = line.match(re)
       next unless m
+
       ps = make_points(m.captures)
       return ps.prepend(k)
     end

@@ -24,5 +24,10 @@ Metrics/AbcSize:
 # We want our test methods to be self-contained, so we can simply exclude
 # them from method length checks.
 Metrics/MethodLength:
+  Max: 15
   ExcludedMethods:
     - tests
+
+# Short helper methods don't need longer variable names.
+Naming/MethodParameterName:
+  Enabled: false
