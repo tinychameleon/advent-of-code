@@ -2,7 +2,7 @@ require './utils'
 
 class Solution
   def tests
-    test_parse_line
+    test_build_gate
     test_circuit
     test_solve_a
     :ok
@@ -18,21 +18,26 @@ class Solution
 
   private
 
-  def test_parse_line
-    assert parse_line('123 -> x'), [:x, :val, UInt16.new(123)]
-    assert parse_line('x AND y -> z'), %i[z and x y]
-    assert parse_line('x OR y -> z'), %i[z or x y]
-    assert parse_line('p LSHIFT 2 -> q'), [:q, :lshift, :p, UInt16.new(2)]
-    assert parse_line('qg RSHIFT 4 -> td'), [:td, :rshift, :qg, UInt16.new(4)]
-    assert parse_line('NOT e -> f'), %i[f not e]
+  def test_build_gate
+    g = build_gate(['123'])
+    assert g.inputs, [123]
+
+    g = build_gate(%w[x AND y])
+    assert g.inputs, %i[x y]
+
+    g = build_gate(%w[x OR 5])
+    c = Circuit.new
+    c << [:x, build_gate(['10'])]
+    c.read(:x)
+    assert g.signal(c), 15
   end
 
   def test_circuit
     c = Circuit.new
-    c << %i[z and x y]
-    c << [:x, :val, UInt16.new(123)]
-    c << %i[w not z]
-    c << [:y, :val, UInt16.new(456)]
+    c << [:z, build_gate(%w[x AND y])]
+    c << [:x, build_gate(['123'])]
+    c << [:w, build_gate(%w[NOT z])]
+    c << [:y, build_gate(['456'])]
 
     assert c.read(:x), 123
     assert c.read(:z), 72
@@ -55,29 +60,17 @@ class Solution
     assert solve_a(TEST_INPUT, :i), 65_079
   end
 
-  UInt16 = Struct.new(:i) do
-    def to_i
-      i
+  class Gate
+    attr_reader :inputs
+
+    def initialize(op, *inputs)
+      @op = op
+      @inputs = inputs
     end
 
-    def &(other)
-      UInt16.new((i & other.i) & 0xffff)
-    end
-
-    def |(other)
-      UInt16.new((i | other.i) & 0xffff)
-    end
-
-    def <<(other)
-      UInt16.new((i << other.i) & 0xffff)
-    end
-
-    def >>(other)
-      UInt16.new((i >> other.i) & 0xffff)
-    end
-
-    def ~
-      UInt16.new(~i & 0xffff)
+    def signal(circuit)
+      args = inputs.map { |i| circuit.signal(i) }
+      @op.call(*args) & 0xffff
     end
   end
 
@@ -88,7 +81,11 @@ class Solution
     end
 
     def <<(signal)
-      @wires[signal[0]] = signal[1..]
+      @wires[signal[0]] = signal[1]
+    end
+
+    def signal(s)
+      s.is_a?(Symbol) ? @signals[s] : s
     end
 
     def read(wire)
@@ -97,7 +94,7 @@ class Solution
         w = queue[-1]
         unless @signals.key?(w)
           gate = @wires[w]
-          missing = missing_signals(gate)
+          missing = missing_signals(gate.inputs)
           unless missing.empty?
             queue.concat(missing)
             next
@@ -111,39 +108,26 @@ class Solution
 
     private
 
-    def missing_signals(gate)
-      gate[1..].filter { |x| x.is_a?(Symbol) && !@signals.key?(x) }
-    end
-
-    def signal(s)
-      s.is_a?(Symbol) ? @signals[s] : s
+    def missing_signals(inputs)
+      inputs.filter { |x| x.is_a?(Symbol) && !@signals.key?(x) }
     end
 
     def calculate_signal(wire, gate)
-      s = case gate.length
-          when 2
-            s = signal(gate[1])
-            gate[0] == :not ? ~s : s
-          else
-            l = signal(gate[1])
-            r = signal(gate[2])
-            case gate[0]
-            when :and
-              l & r
-            when :or
-              l | r
-            when :lshift
-              l << r
-            when :rshift
-              l >> r
-            end
-          end
-      @signals[wire] = s
+      @signals[wire] = gate.signal(self)
     end
   end
 
-  def value(v)
-    /^[0-9]/.match?(v) ? UInt16.new(v.to_i) : v.to_sym
+  DIGIT = /^[0-9]/.freeze
+
+  OPERATIONS = {
+    'AND' => :&,
+    'OR' => :|,
+    'LSHIFT' => :<<,
+    'RSHIFT' => :>>
+  }.freeze
+
+  def val(v)
+    DIGIT.match?(v) ? v.to_i : v.to_sym
   end
 
   def components(line)
@@ -151,17 +135,21 @@ class Solution
     [wire, gate.split]
   end
 
+  def build_gate(parts)
+    case parts.length
+    when 1
+      Gate.new(->(x) { x }, val(parts[0]))
+    when 2
+      Gate.new(->(x) { ~x }, val(parts[1]))
+    when 3
+      op = OPERATIONS[parts[1]]
+      Gate.new(->(l, r) { l.send(op, r) }, val(parts[0]), val(parts[2]))
+    end
+  end
+
   def parse_line(line)
     wire, parts = components(line)
-    [wire.to_sym] + case parts.length
-                    when 1
-                      [:val, value(parts[0])]
-                    when 2
-                      [:not, value(parts[1])]
-                    when 3
-                      op = parts[1].downcase.to_sym
-                      [op, value(parts[0]), value(parts[2])]
-                    end
+    [wire.to_sym, build_gate(parts)]
   end
 
   def solve_a(input, wire)
