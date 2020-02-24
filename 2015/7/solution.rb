@@ -4,16 +4,16 @@ class Solution
   def tests
     test_build_gate
     test_circuit
-    test_solve_a
+    test_solve
     :ok
   end
 
   def part_a
-    solve_a(File.read('input'), :a)
+    solve(File.read('input'), :a)
   end
 
   def part_b
-    raise NotImplementedError
+    solve(File.read('input_b'), :a)
   end
 
   private
@@ -55,9 +55,9 @@ class Solution
     NOT y -> i
   DATA
 
-  def test_solve_a
-    assert solve_a(TEST_INPUT, :g), 114
-    assert solve_a(TEST_INPUT, :i), 65_079
+  def test_solve
+    assert solve(TEST_INPUT, :g), 114
+    assert solve(TEST_INPUT, :i), 65_079
   end
 
   class Gate
@@ -152,13 +152,9 @@ class Solution
     [wire.to_sym, build_gate(parts)]
   end
 
-  def solve_a(input, wire)
+  def solve(input, wire)
     c = Circuit.new
     input.split("\n").each { |l| c << parse_line(l) }
     c.read(wire)
-  end
-
-  def solve_b(input)
-    raise NotImplementedError
   end
 end
