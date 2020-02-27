@@ -37,9 +37,13 @@ class Solution
 
   def shortest_path(distances)
     cities = distances.keys.flatten.uniq
-    cities.permutation.map do |ordering|
-      ordering.each_cons(2).reduce(0) { |sum, k| sum + distances[k.sort] }
-    end.min
+    cities.permutation.reduce(Float::INFINITY) do |answer, ordering|
+      ordering.each_cons(2).reduce(0) do |sum, k|
+        sum += distances[k.sort]
+        break answer if sum > answer
+        sum
+      end
+    end
   end
 
   def solve_a(input)
