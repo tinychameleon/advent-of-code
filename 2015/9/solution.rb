@@ -1,7 +1,7 @@
 require './utils'
 
 class Solution
-  TEST_INPUT = <<~DATA
+  TEST_INPUT = <<~DATA.freeze
     London to Dublin = 464
     London to Belfast = 518
     Dublin to Belfast = 141
@@ -10,9 +10,9 @@ class Solution
   def tests
     distances = parse_distances(TEST_INPUT)
     assert distances, {
-      ['Belfast', 'London'] => 518,
-      ['Belfast', 'Dublin'] => 141,
-      ['Dublin', 'London'] => 464
+      'London' => { 'Belfast' => 518, 'Dublin' => 464 },
+      'Belfast' => { 'London' => 518, 'Dublin' => 141 },
+      'Dublin' => { 'Belfast' => 141, 'London' => 464 }
     }
     assert shortest_path(distances), 605
     :ok
@@ -29,18 +29,22 @@ class Solution
   private
 
   def parse_distances(input)
-    input.split.each_slice(5).each_with_object({}) do |line, atlas|
-      origin, _to, destination, _eq, distance = line
-      atlas[[origin, destination].sort] = distance.to_i
+    atlas = Hash.new { |h, k| h[k] = {} }
+    input.split.each_slice(5) do |origin, _to, destination, _eq, distance|
+      d = distance.to_i
+      atlas[origin][destination] = d
+      atlas[destination][origin] = d
     end
+    atlas
   end
 
   def shortest_path(distances)
-    cities = distances.keys.flatten.uniq
+    cities = distances.keys
     cities.permutation.reduce(Float::INFINITY) do |answer, ordering|
       ordering.each_cons(2).reduce(0) do |sum, k|
-        sum += distances[k.sort]
+        sum += distances.dig(*k)
         break answer if sum > answer
+
         sum
       end
     end
