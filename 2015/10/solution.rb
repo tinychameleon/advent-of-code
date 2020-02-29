@@ -13,30 +13,30 @@ class Solution
   end
 
   def part_a
-    solve_a(INPUT)
+    solve(INPUT, 40)
   end
 
   def part_b
-    raise NotImplementedError
+    solve(INPUT, 50)
   end
 
   private
 
   def look_and_say(number)
     result = ''
-    until (m = /(\d)\1*/.match(number)).nil?
-      result << "#{m[0].length}#{m[1]}"
-      number = m.post_match
+    i = 0
+    while i < number.length
+      c = number[i]
+      j = i
+      j += 1 while j < number.length && number[j] == c
+      result << "#{j - i}#{c}"
+      i = j
     end
     result
   end
 
-  def solve_a(input)
-    40.times { input = look_and_say(input) }
+  def solve(input, iterations)
+    iterations.times { input = look_and_say(input) }
     input.length
-  end
-
-  def solve_b(_input)
-    raise NotImplementedError
   end
 end
