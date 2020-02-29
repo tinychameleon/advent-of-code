@@ -19,19 +19,21 @@ class Solution
   end
 
   def part_b
-    raise NotImplementedError
+    solve_b(File.read('input'))
   end
 
   private
 
-  def sum(obj)
+  def sum(obj, cond: ->(_) { false })
     case obj
     when Integer
       obj
     when Array
-      obj.map { |v| sum(v) }.sum
+      obj.map { |v| sum(v, cond: cond) }.sum
     when Hash
-      obj.values.map { |v| sum(v) }.sum
+      return 0 if cond.call(obj)
+
+      obj.map { |_k, v| sum(v, cond: cond) }.sum
     else
       0
     end
@@ -42,6 +44,6 @@ class Solution
   end
 
   def solve_b(input)
-    raise NotImplementedError
+    sum(JSON.parse(input), cond: ->(h) { h.any? { |_k, v| v == 'red' } })
   end
 end
