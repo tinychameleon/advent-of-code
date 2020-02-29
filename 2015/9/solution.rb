@@ -15,6 +15,7 @@ class Solution
       'Dublin' => { 'Belfast' => 141, 'London' => 464 }
     }
     assert shortest_path(distances), 605
+    assert longest_path(distances), 982
     :ok
   end
 
@@ -23,7 +24,7 @@ class Solution
   end
 
   def part_b
-    raise NotImplementedError
+    solve_b(File.read('input'))
   end
 
   private
@@ -39,8 +40,7 @@ class Solution
   end
 
   def shortest_path(distances)
-    cities = distances.keys
-    cities.permutation.reduce(Float::INFINITY) do |answer, ordering|
+    distances.keys.permutation.reduce(Float::INFINITY) do |answer, ordering|
       ordering.each_cons(2).reduce(0) do |sum, k|
         sum += distances.dig(*k)
         break answer if sum > answer
@@ -50,12 +50,20 @@ class Solution
     end
   end
 
+  def longest_path(distances)
+    distances.keys.permutation.reduce(0) do |answer, ordering|
+      sum = ordering.each_cons(2).reduce(0) { |sum, k| sum + distances.dig(*k) }
+      sum > answer ? sum : answer
+    end
+  end
+
   def solve_a(input)
     distances = parse_distances(input)
     shortest_path(distances)
   end
 
-  def solve_b(_input)
-    raise NotImplementedError
+  def solve_b(input)
+    distances = parse_distances(input)
+    longest_path(distances)
   end
 end
