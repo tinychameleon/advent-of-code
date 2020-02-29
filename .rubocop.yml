@@ -1,3 +1,5 @@
+inherit_from: .rubocop_todo.yml
+
 # For tests, having braces around the expected value helps
 # with clarity:
 #
