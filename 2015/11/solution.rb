@@ -9,35 +9,31 @@ class Solution
     assert valid('abbcdegk'), false
     assert valid('abcdffaa'), true
     assert valid('ghjaabcc'), true
-    assert solve_a('abcdefgh'), 'abcdffaa'
-    assert solve_a('ghijklmn'), 'ghjaabcc'
+    assert solve('abcdefgh'), 'abcdffaa'
+    assert solve('ghijklmn'), 'ghjaabcc'
     :ok
   end
 
   def part_a
-    solve_a(+INPUT)
+    solve(+INPUT)
   end
 
   def part_b
-    raise NotImplementedError
+    solve(solve(+INPUT).succ!)
   end
 
   private
 
-  SEQUENCES = Regexp.union((?a..?z).to_a.each_cons(3).map(&:join))
-  DISALLOWED = /[iol]/
-  DOUBLES = /(.)\1/
+  SEQUENCES = Regexp.union(('a'..'z').to_a.each_cons(3).map(&:join)).freeze
+  DISALLOWED = /[iol]/.freeze
+  DOUBLES = /(.)\1/.freeze
 
   def valid(s)
-    !!s[SEQUENCES] && s !~ DISALLOWED && s.scan(DOUBLES).uniq.length > 1
+    !s[SEQUENCES].nil? && s !~ DISALLOWED && s.scan(DOUBLES).uniq.length > 1
   end
 
-  def solve_a(input)
+  def solve(input)
     input.succ! until valid(input)
     input
-  end
-
-  def solve_b(_input)
-    raise NotImplementedError
   end
 end
