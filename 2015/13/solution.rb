@@ -37,11 +37,11 @@ class Solution
   end
 
   def part_a
-    solve_a(File.read('input'))
+    solve(File.read('input'))
   end
 
   def part_b
-    raise NotImplementedError
+    solve(File.read('input_b'))
   end
 
   private
@@ -70,11 +70,7 @@ class Solution
     end.max
   end
 
-  def solve_a(input)
+  def solve(input)
     seating_happiness(parse_graph(input))
-  end
-
-  def solve_b(_input)
-    raise NotImplementedError
   end
 end
