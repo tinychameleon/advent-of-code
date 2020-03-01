@@ -29,10 +29,12 @@ class Solution
   end
 
   def part_b
-    raise NotImplementedError
+    solve_b(File.read('input'))
   end
 
   private
+
+  CALORIE_INDEX = 4
 
   def parse_ingredients(input, max_traits:)
     input.lines.each_with_object([]) do |line, ingredients|
@@ -41,11 +43,14 @@ class Solution
     end
   end
 
-  def calculate_score(ingredients, amounts)
+  def calculate_score(ingredients, amounts, keep: nil)
     scores = ingredients.zip(amounts).map do |traits, amount|
       traits.map { |v| v * amount }
     end
-    scores[0].zip(*scores[1..]).map { |xs| [0, xs.sum].max }.reduce(1, &:*)
+    totals = scores[0].zip(*scores[1..]).map { |xs| [0, xs.sum].max }
+    return 0 if keep && !keep.call(totals)
+
+    totals[0...CALORIE_INDEX].reduce(1, &:*)
   end
 
   def combinations(sum:, terms:)
@@ -61,9 +66,13 @@ class Solution
     end
   end
 
-  def max_score(ingredients)
+  def calorie_conscious(traits)
+    traits.last == 500
+  end
+
+  def max_score(ingredients, keep: nil)
     combinations(sum: 100, terms: ingredients.size).map do |combo|
-      calculate_score(ingredients, combo)
+      calculate_score(ingredients, combo, keep: keep)
     end.max
   end
 
@@ -71,7 +80,8 @@ class Solution
     max_score(parse_ingredients(input, max_traits: 4))
   end
 
-  def solve_b(_input)
-    raise NotImplementedError
+  def solve_b(input)
+    ingredients = parse_ingredients(input, max_traits: 5)
+    max_score(ingredients, keep: ->(x) { calorie_conscious(x) })
   end
 end
