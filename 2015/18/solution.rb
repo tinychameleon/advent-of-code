@@ -3,10 +3,11 @@ require './utils'
 class Grid
   attr_reader :lights
 
-  def initialize(rows, cols, input)
+  def initialize(rows, cols, input, always_on: [])
     @rows = 0...rows
     @cols = 0...cols
     @memo = {}
+    @always_on = always_on
     @lights = input.each_char.map { |c| c == '.' ? :off : :on }
   end
 
@@ -14,7 +15,7 @@ class Grid
     @lights = @lights.map.with_index do |state, i|
       y = i / @cols.end
       x = i % @cols.end
-      transition(state, neighbour_states(x, y).count(:on))
+      transition(state, [x, y], neighbour_states(x, y).count(:on))
     end
   end
 
@@ -38,7 +39,8 @@ class Grid
     @memo[k].map { |nx, ny| @lights[nx + ny * @cols.end] }
   end
 
-  def transition(state, neighbouring_ons)
+  def transition(state, coords, neighbouring_ons)
+    return :on if @always_on.include?(coords)
     return :off if state == :on && !(2..3).include?(neighbouring_ons)
     return :on if state == :off && neighbouring_ons == 3
 
@@ -56,21 +58,35 @@ class Solution
     ####..
   DATA
 
+  TEST_STUCK_INPUT = <<~DATA.freeze
+    ##.#.#
+    ...##.
+    #....#
+    ..#...
+    #.#..#
+    ####.#
+  DATA
+
   def tests
     assert load_grid(".#\n..\n"), '.#..'
     g = Grid.new(6, 6, load_grid(TEST_INPUT))
     assert g.lights_on, 15
     4.times { g.step }
     assert g.lights_on, 4
+
+    g = Grid.new(6, 6, load_grid(TEST_STUCK_INPUT),
+                 always_on: [[0, 0], [5, 0], [0, 5], [5, 5]])
+    5.times { g.step }
+    assert g.lights_on, 17
     :ok
   end
 
   def part_a
-    solve_a(File.read('input'))
+    solve(File.read('input'))
   end
 
   def part_b
-    raise NotImplementedError
+    solve(File.read('input'), always_on: [[0, 0], [99, 0], [0, 99], [99, 99]])
   end
 
   private
@@ -79,13 +95,9 @@ class Solution
     input.lines.map(&:chomp).join
   end
 
-  def solve_a(input)
-    g = Grid.new(100, 100, load_grid(input))
+  def solve(input, always_on: [])
+    g = Grid.new(100, 100, load_grid(input), always_on: always_on)
     100.times { g.step }
     g.lights_on
-  end
-
-  def solve_b(_input)
-    raise NotImplementedError
   end
 end
