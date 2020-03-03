@@ -15,6 +15,14 @@ class Solution
       molecule: 'HOHOHO'
     }
     assert distinct_molecules(parse_molecular_data(TEST_INPUT)), 7
+
+    assert flip(parse_molecular_data(TEST_INPUT)), {
+      replacements: { 'HO' => 'H', 'OH' => 'H', 'HH' => 'O' },
+      molecule: 'HOHOHO'
+    }
+
+    input = File.read('input_b_test')
+    assert min_steps(target: 'e', **flip(parse_molecular_data(input))), 6
     :ok
   end
 
@@ -23,7 +31,7 @@ class Solution
   end
 
   def part_b
-    raise NotImplementedError
+    solve_b(File.read('input'))
   end
 
   private
@@ -52,11 +60,25 @@ class Solution
       .size
   end
 
+  def flip(molecule:, replacements:)
+    r = replacements.flat_map { |k, vs| vs.product([k]) }.to_h
+    { replacements: r, molecule: molecule }
+  end
+
+  def min_steps(target:, molecule:, replacements:)
+    re = replacements.keys.sort_by { |k| -k.size }.map { |k| Regexp.new(k) }
+    (0..).each do |i|
+      return i if molecule == target
+
+      molecule.sub!(re.each.lazy.filter { |r| molecule[r] }.first, replacements)
+    end
+  end
+
   def solve_a(input)
     distinct_molecules(parse_molecular_data(input))
   end
 
-  def solve_b(_input)
-    raise NotImplementedError
+  def solve_b(input)
+    min_steps(target: 'e', **flip(parse_molecular_data(input)))
   end
 end
