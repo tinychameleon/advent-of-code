@@ -17,7 +17,7 @@ class Solution
   end
 
   def part_b
-    raise NotImplementedError
+    solve_b(INPUT)
   end
 
   private
@@ -41,6 +41,9 @@ class Solution
   end
 
   def solve_b(input)
-    raise NotImplementedError
+    target = input / 11
+    (665_281..).each do |house|
+      return house if target < factors(house).filter { |f| house / f <= 50 }.sum
+    end
   end
 end
