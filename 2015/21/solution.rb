@@ -40,7 +40,7 @@ class Solution
   end
 
   def part_b
-    raise NotImplementedError
+    solve_b
   end
 
   private
@@ -101,15 +101,18 @@ class Solution
     [cost, player]
   end
 
-  def solve_a
+  def solve(winner)
     item_combinations(**SHOP)
       .map { |gear| suit_up(gear) }
-      .filter { |_cost, player| fight_victor(player, BOSS) == :player }
-      .map { |cost, _player| cost }
-      .min
+      .filter { |_cost, player| fight_victor(player, BOSS) == winner }
+      .map(&:first)
   end
 
-  def solve_b(_input)
-    raise NotImplementedError
+  def solve_a
+    solve(:player).min
+  end
+
+  def solve_b
+    solve(:boss).max
   end
 end
