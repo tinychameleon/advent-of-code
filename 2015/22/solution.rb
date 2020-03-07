@@ -23,6 +23,10 @@ class Solution
     assert boss_damage(%i[magic_missile shield]), 8
     assert boss_damage(%i[magic_missile shield drain]), 7
     assert boss_damage(%i[magic_missile shield drain poison drain]), 7
+    assert boss_damage(%i[magic_missile shield], difficulty: :hard), 10
+    assert boss_damage(
+      %i[magic_missile shield drain poison drain], difficulty: :hard
+    ), 12
 
     assert mana_pool([]), 500
     assert mana_pool([:magic_missile] * 10), -30
@@ -38,7 +42,7 @@ class Solution
   end
 
   def part_b
-    raise NotImplementedError
+    solve_b
   end
 
   private
@@ -79,8 +83,9 @@ class Solution
     end
   end
 
-  def boss_damage(spells)
-    return 0 if spells.size < 2
+  def boss_damage(spells, difficulty: :easy)
+    hp_loss = difficulty == :hard ? spells.size : 0
+    return hp_loss if spells.size < 2
 
     shield = SPELLS[:shield]
     armor = SPELLS[:shield][:armor]
@@ -92,7 +97,7 @@ class Solution
     healing_reduction = spells.map { |s| SPELLS[s].fetch(:heal, 0) }.sum
 
     max_damage = BOSS[:damage] * [0, spells.size - 1].max
-    [1, max_damage - armor_reduction - healing_reduction].max
+    hp_loss + [1, max_damage - armor_reduction - healing_reduction].max
   end
 
   def mana_pool(spells)
@@ -106,25 +111,24 @@ class Solution
     end
   end
 
-  def player_dead?(spells)
-    boss_damage(spells) >= PLAYER[:hp]
+  def player_dead?(spells, mode)
+    boss_damage(spells, difficulty: mode) >= PLAYER[:hp]
   end
 
   def boss_dead?(spells)
     spell_damage(spells) >= BOSS[:hp]
   end
 
-  def solve_a
+  def battle(mode)
     mana = Float::INFINITY
     minimum_cost = SPELLS.values.map { |v| v[:mana] }.min
     queue = [[]]
-
     until queue.empty?
       spells = queue.pop
       cost = mana_cost(spells)
 
       next if cost >= mana || mana_pool(spells).negative?
-      next if player_dead?(spells)
+      next if player_dead?(spells, mode)
 
       if boss_dead?(spells)
         mana = cost if cost < mana
@@ -132,11 +136,14 @@ class Solution
         next_spells(spells).each { |s| queue << spells + [s] }
       end
     end
-
     mana
   end
 
-  def solve_b(_input)
-    raise NotImplementedError
+  def solve_a
+    battle(:easy)
+  end
+
+  def solve_b
+    battle(:hard)
   end
 end
