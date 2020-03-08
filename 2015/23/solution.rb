@@ -34,14 +34,51 @@ class Register < Numeric
   end
 end
 
+class Compiler
+  attr_reader :registers, :statements
+
+  def initialize(input)
+    @registers = []
+    @statements = []
+
+    input.lines.map { |l| l.chomp.split(/[, ]+/) }.each do |parts|
+      r, s = parse_statement(*parts)
+      @registers << r unless r.nil?
+      @statements << s
+    end
+
+    @registers.sort!.uniq!
+  end
+
+  def program(**initial_registers)
+    rs = registers.each_with_object({}) do |name, regs|
+      regs[name] = initial_registers.fetch(name, 0)
+    end
+    Program.new(rs, statements)
+  end
+
+  private
+
+  def parse_statement(opstr, arg1, arg2 = nil)
+    case opstr
+    when 'inc', 'hlf', 'tpl'
+      r = arg1.to_sym
+      [r, [opstr.to_sym, r]]
+    when 'jmp'
+      [nil, [opstr.to_sym, arg1.to_i]]
+    when 'jio', 'jie'
+      r = arg1.to_sym
+      [r, [opstr.to_sym, r, arg2.to_i]]
+    end
+  end
+end
+
 class Program
   attr_reader :instruction_counter
 
-  def initialize(register_names, statements)
+  def initialize(registers, statements)
     @instruction_counter = 0
-    @registers = register_names.each_with_object({}) do |name, rs|
-      rs[name] = Register.new
-    end
+    @registers = registers.transform_values { |v| Register.new(v) }
     @statements = statements
     @counter_range = 0...statements.size
   end
@@ -100,14 +137,19 @@ class Solution
     assert r.tpl, 9
     assert r.hlf, 4
 
-    assert read_program(TEST_INPUT), [[:a, :b], TEST_PROGRAM]
+    c = Compiler.new(TEST_INPUT)
+    assert c.registers, [:a, :b]
+    assert c.statements, TEST_PROGRAM
 
-    program = Program.new([:a, :b], TEST_PROGRAM)
-    assert program.instruction_counter, 0
-    assert program.register(:b), 0
-    program.run!
-    assert program.register(:a), 3
-    assert program.register(:b), 1
+    prog = c.program
+    assert prog.instruction_counter, 0
+    assert prog.register(:b), 0
+    prog.run!
+    assert prog.register(:a), 3
+    assert prog.register(:b), 1
+
+    prog2 = c.program(b: 99)
+    assert prog2.register(:b), 99
     :ok
   end
 
@@ -116,42 +158,20 @@ class Solution
   end
 
   def part_b
-    raise NotImplementedError
+    solve_b(File.read('input'))
   end
 
   private
 
-  def parse_statement(opstr, arg1, arg2 = nil)
-    case opstr
-    when 'inc', 'hlf', 'tpl'
-      r = arg1.to_sym
-      [r, [opstr.to_sym, r]]
-    when 'jmp'
-      [nil, [opstr.to_sym, arg1.to_i]]
-    when 'jio', 'jie'
-      r = arg1.to_sym
-      [r, [opstr.to_sym, r, arg2.to_i]]
-    end
-  end
-
-  def read_program(input)
-    register_names = []
-    statements = []
-    input.lines.map { |l| l.chomp.split(/[, ]+/) }.each do |parts|
-      register, statement = parse_statement(*parts)
-      register_names << register unless register.nil?
-      statements << statement
-    end
-    [register_names.sort.uniq, statements]
-  end
-
   def solve_a(input)
-    program = Program.new(*read_program(input))
+    program = Compiler.new(input).program
     program.run!
     program.register(:b)
   end
 
-  def solve_b(_input)
-    raise NotImplementedError
+  def solve_b(input)
+    program = Compiler.new(input).program(a: 1)
+    program.run!
+    program.register(:b)
   end
 end
