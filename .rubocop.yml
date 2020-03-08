@@ -18,6 +18,13 @@ Style/Documentation:
 Style/FrozenStringLiteralComment:
   Enabled: false
 
+# With the tests being written I end up with a mixture of %i[] and [] arrays.
+# I also happen to find these shorthand definitions to be far less legible than
+# their explicit counterparts -- this recommendation leans far to heavily on
+# prioritizing fewer keystrokes with no real benefit.
+Style/SymbolArray:
+  Enabled: false
+
 # While this metric can be useful for other methods, it will report
 # failures for our testing methods.
 Metrics/AbcSize:
