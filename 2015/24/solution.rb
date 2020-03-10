@@ -29,7 +29,7 @@ class Solution
   end
 
   def part_b
-    raise NotImplementedError
+    solve_b(File.read('input'))
   end
 
   private
@@ -53,7 +53,7 @@ class Solution
     entanglement(read_package_weights(input), 3).first
   end
 
-  def solve_b(_input)
-    raise NotImplementedError
+  def solve_b(input)
+    entanglement(read_package_weights(input), 4).first
   end
 end
